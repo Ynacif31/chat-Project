@@ -1,6 +1,10 @@
 import User from "../../models/User.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../../lib/utils.js";
+import { resendClient, sender } from "../../lib/resend.js";
+import { createWelcomeEmailTemplate } from "../../emails/emailTemplates.js";
+import { ENV } from "../../lib/env.js";
+import { sendWelcomeEmail } from "../emails/emailHandler.js";
 
 
 export const signup =  async (req, res) => {
@@ -46,6 +50,12 @@ export const signup =  async (req, res) => {
                 fullName: savedUser.fullName,
                 email: savedUser.email
             });
+
+            try {
+                await sendWelcomeEmail(savedUser.email, ENV.CLIENT_URL);
+            } catch (error) {
+                console.error("Error sending welcome email:", error);
+            }
         } else {
             res.status(400).json({ message: "User registration failed" });
         }
